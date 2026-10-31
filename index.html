@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LogicForge // Terminal Digital Logic & K-Map Workbench</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="bg-grid"></div>
+
+  <header class="topbar glass">
+    <div class="brand">
+      <span class="status-dot"></span>
+      <span class="brand-title">LOGIC_FORGE</span>
+      <span class="brand-tag">v1.0.0 // DIGITAL_SYSTEMS_LAB</span>
+    </div>
+    <nav class="nav-tabs" role="tablist">
+      <button class="tab-btn active" data-tab="simulator">01 // GATE_SIMULATOR</button>
+      <button class="tab-btn" data-tab="truthtable">02 // TRUTH_TABLE_ENGINE</button>
+      <button class="tab-btn" data-tab="kmap">03 // K-MAP_SOLVER</button>
+    </nav>
+    <div class="author-links">
+      <a href="https://github.com/aditya-stack-io" target="_blank" rel="noopener">GH: @aditya-stack-io</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- TAB 1: LOGIC GATE & ADDER SIMULATOR -->
+    <section id="simulator" class="tab-panel active">
+      <div class="panel-grid">
+        <div class="card glass">
+          <div class="card-header">
+            <span class="terminal-prompt">&gt; SELECT_COMPONENT</span>
+            <span id="ic-badge" class="badge">IC: 74LS08</span>
+          </div>
+          <div class="gate-selector" id="gate-buttons">
+            <button class="chip active" data-gate="AND">AND</button>
+            <button class="chip" data-gate="OR">OR</button>
+            <button class="chip" data-gate="NOT">NOT</button>
+            <button class="chip" data-gate="NAND">NAND</button>
+            <button class="chip" data-gate="NOR">NOR</button>
+            <button class="chip" data-gate="XOR">XOR</button>
+            <button class="chip" data-gate="XNOR">XNOR</button>
+            <button class="chip" data-gate="HALF_ADDER">HALF ADDER</button>
+            <button class="chip" data-gate="FULL_ADDER">FULL ADDER</button>
+          </div>
+
+          <div class="card-header mt-lg">
+            <span class="terminal-prompt">&gt; INPUT_REGISTERS</span>
+            <span class="sub-label">CLICK TO TOGGLE BIT STATE</span>
+          </div>
+          <div class="input-toggles">
+            <div class="bit-control" id="ctrl-a">
+              <span class="bit-label">INPUT A</span>
+              <button class="bit-btn" id="btn-a" data-bit="0">0</button>
+            </div>
+            <div class="bit-control" id="ctrl-b">
+              <span class="bit-label">INPUT B</span>
+              <button class="bit-btn" id="btn-b" data-bit="0">0</button>
+            </div>
+            <div class="bit-control hidden" id="ctrl-c">
+              <span class="bit-label">CARRY IN (Cin)</span>
+              <button class="bit-btn" id="btn-c" data-bit="0">0</button>
+            </div>
+          </div>
+
+          <div class="specs-box">
+            <div class="spec-row">
+              <span class="spec-key">BOOLEAN EQUATION:</span>
+              <code class="spec-val" id="gate-eq">Y = A · B</code>
+            </div>
+            <div class="spec-row">
+              <span class="spec-key">DESCRIPTION:</span>
+              <span class="spec-val" id="gate-desc">Outputs HIGH (1) only when all inputs are HIGH.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card glass canvas-card">
+          <div class="card-header">
+            <span class="terminal-prompt">&gt; LIVE_CIRCUIT_BUS</span>
+            <span class="badge" id="bus-status">STATE: LOW (0V)</span>
+          </div>
+
+          <div class="svg-stage" id="svg-stage">
+            <!-- Dynamic SVG injected via app.js -->
+          </div>
+
+          <div class="output-readout">
+            <div class="readout-box">
+              <span class="readout-label" id="out1-label">OUTPUT (Y)</span>
+              <div class="led-indicator" id="led-out1">0</div>
+            </div>
+            <div class="readout-box hidden" id="out2-box">
+              <span class="readout-label">CARRY OUT (Cout)</span>
+              <div class="led-indicator" id="led-out2">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: BOOLEAN EXPRESSION & TRUTH TABLE ENGINE -->
+    <section id="truthtable" class="tab-panel">
+      <div class="card glass">
+        <div class="card-header">
+          <span class="terminal-prompt">&gt; BOOLEAN_EXPRESSION_EVALUATOR</span>
+          <span class="sub-label">VARIABLES: A, B, C, D | OPS: &amp; (AND), | (OR), ^ (XOR), ! (NOT)</span>
+        </div>
+
+        <div class="expr-bar">
+          <input
+            type="text"
+            id="expr-input"
+            class="terminal-input"
+            value="(A & B) | (!A & C)"
+            placeholder="e.g. (A & B) | (!A & C)"
+            spellcheck="false"
+          />
+          <button class="action-btn" id="eval-btn">GENERATE TABLE</button>
+        </div>
+
+        <div class="preset-row">
+          <span class="preset-label">PRESETS:</span>
+          <button class="preset-chip" data-expr="(A & B) | (!A & C)">2:1 MUX</button>
+          <button class="preset-chip" data-expr="A ^ B ^ C">FULL ADDER SUM</button>
+          <button class="preset-chip" data-expr="(A & B) | (B & C) | (A & C)">MAJORITY VOTE (CARRY)</button>
+          <button class="preset-chip" data-expr="!(A | B) ^ (C & D)">4-VAR HYBRID</button>
+        </div>
+
+        <div id="expr-error" class="error-banner hidden"></div>
+
+        <div class="canonical-grid">
+          <div class="canonical-box">
+            <span class="spec-key">SUM OF MINTERMS (SOP):</span>
+            <code id="sop-minterms">∑m(...)</code>
+          </div>
+          <div class="canonical-box">
+            <span class="spec-key">PRODUCT OF MAXTERMS (POS):</span>
+            <code id="pos-maxterms">∏M(...)</code>
+          </div>
+        </div>
+
+        <div class="table-actions">
+          <button class="secondary-btn" id="copy-md-btn">COPY MARKDOWN TABLE</button>
+          <button class="secondary-btn" id="export-csv-btn">EXPORT .CSV</button>
+          <span id="copy-toast" class="toast"></span>
+        </div>
+
+        <div class="table-wrap">
+          <table class="terminal-table" id="tt-output"></table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: INTERACTIVE K-MAP SOLVER -->
+    <section id="kmap" class="tab-panel">
+      <div class="panel-grid">
+        <div class="card glass">
+          <div class="card-header">
+            <span class="terminal-prompt">&gt; KARNAUGH_MAP_MATRIX</span>
+            <span class="sub-label">CLICK CELL TO CYCLE: 0 → 1 → X (DON'T CARE)</span>
+          </div>
+
+          <div class="kmap-controls">
+            <div class="var-select">
+              <button class="chip" data-kvars="2">2 VARIABLES (A,B)</button>
+              <button class="chip" data-kvars="3">3 VARIABLES (A,B,C)</button>
+              <button class="chip active" data-kvars="4">4 VARIABLES (A,B,C,D)</button>
+            </div>
+            <div class="kmap-quick-btns">
+              <button class="secondary-btn" id="kmap-reset">CLEAR (ALL 0)</button>
+              <button class="secondary-btn" id="kmap-fill1">FILL ALL 1</button>
+              <button class="secondary-btn" id="kmap-random">RANDOMIZE</button>
+            </div>
+          </div>
+
+          <div class="kmap-stage">
+            <div id="kmap-axis-label" class="kmap-axis-label">AB \ CD (GRAY CODE)</div>
+            <div id="kmap-grid-container" class="kmap-grid-container"></div>
+          </div>
+        </div>
+
+        <div class="card glass">
+          <div class="card-header">
+            <span class="terminal-prompt">&gt; MINIMIZED_OUTPUT_ENGINE</span>
+            <span class="badge">QUINE-McCLUSKEY SOLVER</span>
+          </div>
+
+          <div class="result-block">
+            <span class="spec-key">MINIMIZED SOP EXPRESSION:</span>
+            <div class="minimized-output" id="kmap-sop-expr">F = 0</div>
+          </div>
+
+          <div class="specs-box mt-lg">
+            <div class="spec-row">
+              <span class="spec-key">ACTIVE MINTERMS (1):</span>
+              <code class="spec-val" id="kmap-minterms">∑m()</code>
+            </div>
+            <div class="spec-row">
+              <span class="spec-key">DON'T CARES (X):</span>
+              <code class="spec-val" id="kmap-dontcares">∑d()</code>
+            </div>
+            <div class="spec-row">
+              <span class="spec-key">LITERAL COUNT:</span>
+              <code class="spec-val" id="kmap-literals">0 literals</code>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer glass">
+    <span>ENGINEERED BY <strong>ADITYA KUMAR</strong></span>
+    <span class="footer-links">
+      <a href="https://github.com/aditya-stack-io" target="_blank" rel="noopener">GitHub</a> //
+      <a href="https://www.instagram.com/iam.aadi11.11" target="_blank" rel="noopener">Instagram</a>
+    </span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
